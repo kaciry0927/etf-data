@@ -1,0 +1,12 @@
+<view class="chart-wrap" style="height:{{height}}px;">
+  <canvas
+    wx:if="{{!pageHidden}}"
+    type="2d"
+    id="chart"
+    class="chart-canvas"
+    style="height:{{height}}px;"
+    bindtouchstart="onTouchStart"
+    catchtouchmove="onTouchMove"
+    bindtouchend="onTouchEnd"
+  ></canvas>
+</view>

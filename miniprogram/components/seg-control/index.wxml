@@ -1,0 +1,10 @@
+<view class="seg seg-anim-{{anim}}">
+  <view
+    wx:for="{{items}}"
+    wx:key="value"
+    class="seg-item {{value === item.value ? 'active' : ''}}"
+    data-value="{{item.value}}"
+    bindtap="onTap"
+    hover-class="seg-hover"
+  >{{item.label}}</view>
+</view>

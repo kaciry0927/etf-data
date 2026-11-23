@@ -1,0 +1,14 @@
+{
+  "name": "wechat-etf-monitor-server",
+  "version": "1.1.0",
+  "private": true,
+  "description": "方案 C 静态快照生成 + 可选 HTTP 数据服务（无第三方依赖）",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "node build.js"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}

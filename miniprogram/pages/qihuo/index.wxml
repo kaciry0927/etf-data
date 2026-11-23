@@ -1,0 +1,145 @@
+<nav-bar title="期指多空" back="{{true}}" />
+
+<view class="page {{pageAnim ? 'page-anim-' + pageAnim : ''}}">
+  <!-- ① 日期与刷新 -->
+  <view class="date-bar">
+    <view class="date-trigger tap-item" bindtap="openCalendar" hover-class="tap-feedback">
+      <view class="calendar-glyph">日</view>
+      <text class="date-d num">{{date}}</text>
+      <text class="date-hint">{{weekdayText}} · {{cacheHint}}</text>
+    </view>
+    <view class="refresh-btn {{spinning ? 'spinning' : ''}} tap-item" bindtap="refresh" hover-class="tap-feedback">↻</view>
+  </view>
+  <view class="source-line">数据来源：东方财富 datacenter 龙虎榜接口 · 中金所持仓披露口径</view>
+
+  <!-- 加载骨架 -->
+  <view wx:if="{{loading}}" class="section" style="margin-top:12px;">
+    <view class="card">
+      <view class="skeleton-row" style="width:55%;"></view>
+      <view class="skeleton-row"></view>
+      <view class="skeleton-row" style="width:82%;"></view>
+      <view class="skeleton-row" style="width:68%;"></view>
+      <view class="skeleton-note">正在请求「{{date}}」龙虎榜数据…</view>
+    </view>
+  </view>
+
+  <block wx:elif="{{payload}}">
+    <!-- ② 数据源切换 -->
+    <view class="realtime-tabs">
+      <view
+        wx:for="{{sides}}"
+        wx:key="side"
+        class="rt-tab {{index === 0 ? 'citic' : 'other'}} {{sideIdx === index ? 'active' : ''}} tap-item"
+        data-index="{{index}}"
+        bindtap="switchSide"
+       hover-class="tap-feedback">
+        <view class="rt-nm">{{item.side}}</view>
+        <view class="rt-ds">{{item.desc}}</view>
+      </view>
+    </view>
+
+    <!-- ③ 多空表格 -->
+    <view class="section" style="margin-top:12px;">
+      <view class="section-head">
+        <view>
+          <view class="section-title">{{current.side}} · 四品种净增</view>
+          <view class="section-sub">多空结果 &lt; 0 记为「加仓」，≥ 0 记为「减仓」</view>
+        </view>
+      </view>
+      <view class="card card-flush">
+        <view class="table rt-table">
+          <view class="tr th">
+            <view class="td left rt-c1">合约</view>
+            <view class="td rt-c2">多单净增</view>
+            <view class="td rt-c3">空单净增</view>
+            <view class="td rt-c4">多空结果</view>
+            <view class="td rt-c5">操作</view>
+          </view>
+          <view wx:for="{{current.rows}}" wx:key="product" class="tr">
+            <view class="td left rt-c1">
+              <text class="rt-prod">{{item.product}}</text>
+              <text class="rt-prod-name">{{item.productName}}</text>
+            </view>
+            <view class="td num {{item.longTone}} rt-c2">{{item.longText}}</view>
+            <view class="td num {{item.shortTone}} rt-c3">{{item.shortText}}</view>
+            <view class="td num rt-c4">{{item.netText}}</view>
+            <view class="td rt-c5"><text class="tag {{item.tagClass}}">{{item.tag}}</text></view>
+          </view>
+          <view class="tr total-row">
+            <view class="td left rt-c1">合计</view>
+            <view class="td num {{current.total.longTone}} rt-c2">{{current.total.longText}}</view>
+            <view class="td num {{current.total.shortTone}} rt-c3">{{current.total.shortText}}</view>
+            <view class="td num rt-c4">{{current.total.netText}}</view>
+            <view class="td rt-c5"><text class="tag {{current.total.tagClass}}">{{current.total.tag}}</text></view>
+          </view>
+        </view>
+        <view class="table-note">单位：手。多空结果 = 多单净增 − 空单净增；结果为负说明空单增得更多，视为「加仓」。</view>
+      </view>
+    </view>
+
+    <view class="cache-line">
+      <text>上次请求 {{lastFetchText}} · {{cacheHint}}</text>
+      <view wx:if="{{!isStatic}}" class="link tap-item" hover-class="tap-feedback" bindtap="refresh">立即刷新</view>
+    </view>
+  </block>
+
+  <!-- ④ 非交易日空态 -->
+  <block wx:else>
+    <view class="section" style="margin-top:14px;">
+      <view class="card">
+        <empty-state glyph="日" title="{{errorText ? '龙虎榜数据不可用' : '该日期没有龙虎榜数据'}}" text="{{emptyText}}">
+          <view
+            wx:for="{{quickDays}}"
+            wx:key="iso"
+            class="chip tap-item"
+            data-iso="{{item.iso}}"
+            bindtap="pickQuick"
+           hover-class="tap-feedback">{{item.label}} {{item.week}}</view>
+        </empty-state>
+      </view>
+    </view>
+    <view class="section">
+      <view class="notice warn">
+        <view class="notice-icon">!</view>
+        <view>非交易日无数据时展示空态，而不是全表显示「—」；这是对原始脚本周日误触发抓取的修复。</view>
+      </view>
+    </view>
+  </block>
+
+  <view class="qihuo-note">说明：龙虎榜为盘中实时数据，收盘后不再变化；页面默认缓存 5 分钟。切换日期或手动刷新会重新发起请求。</view>
+  <view class="footer-note">{{disclaimer}}</view>
+</view>
+
+<!-- ⑤ 日历半屏 -->
+<sheet
+  show="{{showCal}}"
+  title="选择交易日"
+  hint="仅可查询历史交易日；周末与法定节假日会展示「无数据」状态。默认缓存 5 分钟。"
+  bindclose="closeCalendar"
+>
+  <view class="cal-head">
+    <view>{{calTitle}}</view>
+    <view class="cal-nav">
+      <view class="cal-nav-btn {{calCanPrev ? '' : 'disabled'}} tap-item" bindtap="prevMonth" hover-class="tap-feedback">‹</view>
+      <view class="cal-nav-btn {{calCanNext ? '' : 'disabled'}} tap-item" bindtap="nextMonth" hover-class="tap-feedback">›</view>
+    </view>
+  </view>
+  <view class="cal">
+    <view wx:for="{{dows}}" wx:key="*this" class="cal-dow">{{item}}</view>
+    <view
+      wx:for="{{calCells}}"
+      wx:key="key"
+      class="{{item.cls}} tap-item"
+      data-iso="{{item.iso}}"
+      data-disabled="{{item.disabled ? '1' : '0'}}"
+      bindtap="onDayTap"
+     hover-class="tap-feedback">
+      <text wx:if="{{item.day}}">{{item.day}}</text>
+    </view>
+  </view>
+  <view class="cal-legend">
+    <view class="cal-legend-item"><view class="cal-legend-dot" style="background:#2f6fdd;"></view>当前选中</view>
+    <view class="cal-legend-item"><view class="cal-legend-dot" style="background:#d7dce5;"></view>未来日期不可选</view>
+    <view class="cal-legend-item"><view class="cal-legend-dot" style="background:#a5aebc;"></view>周末无龙虎榜</view>
+  </view>
+</sheet>

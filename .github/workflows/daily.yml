@@ -1,0 +1,107 @@
+name: 每日更新 ETF 数据
+
+# 每天两次：
+#   23:10 北京时间（15:10 UTC）—— 当天期货持仓 + 当日龙虎榜已发布
+#   08:30 北京时间（00:30 UTC）—— 交易所份额 T+1 披露后补齐当天数据
+on:
+  schedule:
+    - cron: '10 15 * * *'
+    - cron: '30 0 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '忽略缓存全量重抓（首次或换数据源时用）'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: etf-daily
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 恢复抓取缓存
+        uses: actions/cache@v4
+        with:
+          path: server/.cache
+          key: etf-cache-${{ github.run_id }}
+          restore-keys: |
+            etf-cache-
+
+      - name: 生成快照
+        id: build
+        env:
+          TZ: Asia/Shanghai
+        run: |
+          node tools/ci-build.js --out dist ${{ inputs.force && '--force' || '' }}
+
+      - name: 发布到 GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          # 自定义域名：CNAME 文件会随每次发布保留，避免域名被重置
+          cname: data.kaciry.com
+          force_orphan: true
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: 'data: ETF ${{ steps.build.outputs.etfDate }} / 期货 ${{ steps.build.outputs.futuresDate }}'
+
+      - name: 汇总
+        run: |
+          {
+            echo "### 数据已更新"
+            echo ""
+            echo "| 项目 | 值 |"
+            echo "|---|---|"
+            echo "| ETF 交易日 | ${{ steps.build.outputs.etfDate }} |"
+            echo "| 期货交易日 | ${{ steps.build.outputs.futuresDate }} |"
+            echo "| 龙虎榜天数 | ${{ steps.build.outputs.qihuoDays }} |"
+            echo "| 数据是否有变化 | ${{ steps.build.outputs.changed }} |"
+            echo "| 耗时 | ${{ steps.build.outputs.seconds }}s |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 失败时开 issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '[自动更新失败] ' + new Date().toISOString().slice(0, 10)
+            const list = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'ci-failure'
+            })
+            if (list.data.some((i) => i.title === title)) return
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              labels: ['ci-failure'],
+              body: [
+                '定时任务执行失败，页面数据可能停在上一交易日。',
+                '',
+                '- 运行记录：' + context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId,
+                '- 常见原因：交易所/东财接口临时不可用、海外 runner 被限流。',
+                '',
+                '先在 Actions 页面手动 Re-run 一次；连续失败再检查数据源。'
+              ].join('\n')
+            })

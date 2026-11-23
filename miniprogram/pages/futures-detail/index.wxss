@@ -1,0 +1,96 @@
+/* 期货明细页专属样式 */
+.detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.detail-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f1620;
+}
+
+.detail-sub {
+  font-size: 9.5px;
+  color: #9aa3af;
+  margin-top: 5px;
+  line-height: 1.6;
+}
+
+.detail-metrics {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #eef1f5;
+}
+
+.detail-metric {
+  flex: 1;
+}
+
+.detail-k {
+  font-size: 9px;
+  color: #78828f;
+}
+
+.detail-v {
+  font-size: 21px;
+  font-weight: 600;
+  margin-top: 2px;
+  color: #0f1620;
+}
+
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+.group-head .prod-dot {
+  margin-top: 2px;
+}
+
+.group-chev {
+  color: #aab4c3;
+  font-size: 17px;
+  transform: rotate(0deg);
+  transition: transform 0.2s;
+  padding: 4px;
+}
+
+.group-chev.open {
+  transform: rotate(90deg);
+}
+
+.fut-table {
+  width: 440px;
+}
+
+.fut-table .td {
+  padding: 8px;
+}
+
+.contract {
+  font-size: 10.5px;
+  color: #0f1620;
+  letter-spacing: 0.2px;
+}
+
+.group-closed {
+  padding: 12px 14px;
+  font-size: 10.5px;
+  color: #78828f;
+}
+
+.group-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 5px;
+  font-size: 10px;
+  color: #2f6fdd;
+  padding: 2px 2px 0;
+}

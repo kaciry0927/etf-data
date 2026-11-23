@@ -1,0 +1,9 @@
+<view class="nav {{dark ? 'nav-dark' : ''}}" style="height:{{totalHeight}}px;padding-top:{{statusBarHeight}}px;">
+  <view class="nav-inner" style="height:{{barHeight}}px;">
+    <view wx:if="{{back}}" class="nav-back" bindtap="onBack" hover-class="nav-back-hover" aria-role="button" aria-label="返回">
+      <view class="back-chev"></view>
+    </view>
+    <view class="nav-title" style="max-width:{{titleMaxWidth}}px;">{{title}}</view>
+  </view>
+</view>
+<view class="nav-spacer {{dark ? 'spacer-dark' : ''}}" style="height:{{totalHeight}}px;"></view>

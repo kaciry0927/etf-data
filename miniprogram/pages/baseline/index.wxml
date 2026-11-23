@@ -1,0 +1,70 @@
+<nav-bar title="持仓基准" back="{{true}}" />
+
+<view class="page {{pageAnim ? 'page-anim-' + pageAnim : ''}}">
+  <!-- ① 基准头图 -->
+  <view class="base-hero">
+    <view class="base-k">{{heroLabel}}</view>
+    <view class="base-v num">{{heroValue}}<text class="unit-small">{{heroUnit}}</text></view>
+    <view class="base-meta">
+      <text>截至 {{asof}}</text>
+      <text>{{disclosure}}</text>
+    </view>
+  </view>
+
+  <!-- ② 口径切换 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">官方披露口径</view>
+        <view class="section-sub">每半年随基金定期报告更新</view>
+      </view>
+    </view>
+    <seg-control options="{{modeOptions}}" value="{{mode}}" bindchange="onModeChange" />
+    <view class="chart-note">切换后重新计算各机构占比与排序；份额口径可避免价格波动干扰。</view>
+  </view>
+
+  <!-- ③ 机构列表 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">主要持有机构</view>
+        <view class="section-sub">合计 6 家 · 按{{mode === 'value' ? '市值' : '份额'}}排序</view>
+      </view>
+    </view>
+    <view class="card">
+      <view wx:for="{{holders}}" wx:key="rowKey" class="holder-row">
+        <view class="holder-main">
+          <view class="holder-name">{{item.name}}</view>
+          <view class="holder-meta">{{item.meta}}</view>
+          <view class="holder-track">
+            <view
+              class="holder-track-in"
+              style="width:{{item.barWidth}}%;animation-delay:{{item.barDelay}}ms;"
+            ></view>
+          </view>
+        </view>
+        <view class="holder-val">
+          <view class="holder-v num">{{item.valueText}}</view>
+          <view class="holder-s num">{{item.unit}} · {{item.pctText}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ④ 数据说明 -->
+  <view class="section">
+    <view class="notice">
+      <view class="notice-icon">i</view>
+      <view>{{note}}</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="card">
+      <view class="card-title">数据来源与更新</view>
+      <view class="chart-note" style="margin-top:5px;">{{source}}。持仓为基金定期报告披露的股东信息，非实时数据；最新披露为 {{asof}}，下一次披露预计为 2026 年半年报。</view>
+    </view>
+  </view>
+
+  <view class="footer-note">{{disclaimer}}</view>
+</view>

@@ -1,0 +1,19 @@
+<view wx:if="{{visible}}" class="sheet-mask {{closing ? 'closing' : ''}}" bindtap="onMask" catchtouchmove="noop">
+  <view class="sheet-panel" catchtap="noop">
+    <view class="sheet-head">
+      <text class="sheet-title">{{title}}</text>
+      <view class="sheet-close tap-item" hover-class="tap-feedback" bindtap="onClose">关闭</view>
+    </view>
+    <view wx:if="{{hint}}" class="sheet-hint">{{hint}}</view>
+    <scroll-view
+      scroll-y
+      class="sheet-body"
+      style="{{maxHeight ? 'max-height:' + maxHeight + 'px;' : ''}}"
+      enhanced
+      show-scrollbar="{{false}}"
+    >
+      <slot></slot>
+    </scroll-view>
+    <view class="sheet-safe"></view>
+  </view>
+</view>

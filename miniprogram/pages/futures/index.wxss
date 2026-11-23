@@ -1,0 +1,6 @@
+/* 期货页专属样式 */
+.fut-hero-note {
+  font-size: 9px;
+  color: #899dbb;
+  margin-top: 5px;
+}

@@ -1,0 +1,111 @@
+<nav-bar title="持仓明细" back="{{true}}" />
+
+<view class="page {{pageAnim ? 'page-anim-' + pageAnim : ''}}">
+  <!-- ① 页头摘要 -->
+  <view class="section" style="margin-top:14px;">
+    <view class="card">
+      <view class="detail-head">
+        <view>
+          <view class="detail-title">前 20 会员 · 持仓明细</view>
+          <view class="detail-sub">交易日 {{dateText}} · 前 20 会员排名 · 单位：手</view>
+        </view>
+        <text class="exchange-tag">收盘数据</text>
+      </view>
+      <view class="detail-metrics">
+        <view class="detail-metric">
+          <view class="detail-k">合计净空头</view>
+          <view class="detail-v num">{{totalNetText}}</view>
+        </view>
+        <view class="detail-metric">
+          <view class="detail-k">净空头变动</view>
+          <view class="detail-v num {{changeTone}}">{{changeText}}</view>
+        </view>
+        <view class="detail-metric">
+          <view class="detail-k">合约数</view>
+          <view class="detail-v num">{{contractCount}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ② 品种分组与小计 -->
+  <view wx:for="{{groups}}" wx:key="product" class="section">
+    <view class="group-head tap-item" data-index="{{index}}" bindtap="toggleGroup" hover-class="tap-feedback">
+      <view class="prod-dot" style="background:{{item.color}};"></view>
+      <view class="flex1">
+        <view class="section-title">{{item.product}} · {{item.name}}</view>
+        <view class="section-sub">{{item.meta}}</view>
+      </view>
+      <text class="group-chev {{item.open ? 'open' : ''}}">›</text>
+    </view>
+
+    <view wx:if="{{item.open}}" class="card card-flush">
+      <scroll-view scroll-x class="table-scroll" enhanced show-scrollbar="{{false}}">
+        <view class="table fut-table">
+          <view class="tr th">
+            <view class="td left" style="width:78px;">合约</view>
+            <view class="td" style="width:74px;">多头持仓</view>
+            <view class="td" style="width:64px;">增减</view>
+            <view class="td" style="width:74px;">空头持仓</view>
+            <view class="td" style="width:64px;">增减</view>
+            <view class="td" style="width:72px;">净空头</view>
+          </view>
+          <view
+            wx:for="{{item.rows}}"
+            wx:for-item="row"
+            wx:key="contract"
+            class="tr"
+          >
+            <view class="td left contract num tap-item" data-contract="{{row.contract}}" bindlongpress="onCopy" hover-class="tap-feedback">{{row.contract}}</view>
+            <view class="td num">{{row.longText}}</view>
+            <view class="td num {{row.longChgTone}}">{{row.longChgText}}</view>
+            <view class="td num">{{row.shortText}}</view>
+            <view class="td num {{row.shortChgTone}}">{{row.shortChgText}}</view>
+            <view class="td num {{row.netTone}}">{{row.netText}}</view>
+          </view>
+          <view class="tr subtotal-row">
+            <view class="td left">小计</view>
+            <view class="td num">{{item.subtotal.longText}}</view>
+            <view class="td num {{item.subtotal.longChgTone}}">{{item.subtotal.longChgText}}</view>
+            <view class="td num">{{item.subtotal.shortText}}</view>
+            <view class="td num {{item.subtotal.shortChgTone}}">{{item.subtotal.shortChgText}}</view>
+            <view class="td num {{item.subtotal.netTone}}">{{item.subtotal.netText}}</view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="table-note">小计 = 该品种各合约多头 / 空头合计；横向滑动可查看完整列，长按合约号可复制。</view>
+    </view>
+
+    <view wx:else class="card group-closed tap-item" data-index="{{index}}" bindtap="toggleGroup" hover-class="tap-feedback">
+      <text>已收起 · 点击展开 {{item.count}} 个合约</text>
+    </view>
+
+    <view class="group-toggle tap-item" data-index="{{index}}" bindtap="toggleGroup" hover-class="tap-feedback">
+      {{item.open ? '收起该品种' : '展开该品种'}}
+    </view>
+  </view>
+
+  <!-- 期指多空入口 -->
+  <view class="section">
+    <view class="cell-group">
+      <view class="cell tap-item" bindtap="openQihuo" hover-class="tap-feedback">
+        <view class="cell-icon amber">龙</view>
+        <view class="cell-main">
+          <view class="cell-title">查看期指多空实时数据</view>
+          <view class="cell-sub">多单净增 / 空单净增 / 加仓减仓判定</view>
+        </view>
+        <view class="cell-value"><text class="chev">›</text></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ③ 口径 -->
+  <view class="section">
+    <view class="notice">
+      <view class="notice-icon">i</view>
+      <view>净空头 = 持卖单量 − 持买单量；持仓包含该会员所有客户与自营。合约按到期月份升序排列，数据于收盘后更新。</view>
+    </view>
+  </view>
+
+  <view class="footer-note">{{disclaimer}}</view>
+</view>

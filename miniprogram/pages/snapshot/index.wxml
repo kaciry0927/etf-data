@@ -1,0 +1,160 @@
+<nav-bar title="最新快照" back="{{true}}" />
+
+<view class="page {{pageAnim ? 'page-anim-' + pageAnim : ''}}">
+  <!-- ① 搜索 / 筛选 / 排序 -->
+  <view class="searchbar-wrap">
+    <view class="searchbar">
+      <view class="search-glyph"></view>
+      <input
+        placeholder="搜索代码、名称或跟踪指数"
+        value="{{query}}"
+        bindinput="onSearch"
+      />
+      <view wx:if="{{query}}" class="search-clear tap-item" catchtap="clearSearch" hover-class="tap-feedback">清除</view>
+    </view>
+  </view>
+
+  <view class="filter-row">
+    <view class="chip {{filter === 'all' ? 'active' : ''}} tap-item" data-value="all" bindtap="setFilter" hover-class="tap-feedback">全部 16</view>
+    <view class="chip {{filter === 'sh' ? 'active' : ''}} tap-item" data-value="sh" bindtap="setFilter" hover-class="tap-feedback">沪市 11</view>
+    <view class="chip {{filter === 'sz' ? 'active' : ''}} tap-item" data-value="sz" bindtap="setFilter" hover-class="tap-feedback">深市 5</view>
+    <view class="filter-spacer"></view>
+    <view class="view-toggle">
+      <view class="view-toggle-item {{view === 'card' ? 'active' : ''}} tap-item" data-value="card" bindtap="setView" hover-class="tap-feedback">卡片</view>
+      <view class="view-toggle-item {{view === 'table' ? 'active' : ''}} tap-item" data-value="table" bindtap="setView" hover-class="tap-feedback">表格</view>
+    </view>
+  </view>
+
+  <view class="filter-row" style="padding-top:8px;">
+    <view class="chip tap-item" bindtap="openSort" hover-class="tap-feedback">排序：{{sortLabel}}</view>
+    <view class="filter-spacer"></view>
+    <text class="sort-hint">表格视图可点表头排序</text>
+  </view>
+
+  <!-- ③ 合计条 -->
+  <view class="snap-total" style="margin-top:10px;">
+    <text>当前 {{count}} 只 · 合计份额 <text class="num">{{sumSharesText}}</text> 亿份</text>
+    <text>当日净流入 <text class="num {{sumFlowTone}}">{{sumFlowText}}</text> 亿</text>
+  </view>
+
+  <!-- ② 卡片视图 -->
+  <view wx:if="{{view === 'card'}}" class="snap-list">
+    <view
+      wx:for="{{rows}}"
+      wx:key="code"
+      class="snap-row tap-item"
+      data-code="{{item.code}}"
+      bindtap="openEtf"
+     hover-class="tap-feedback">
+      <view class="snap-id">
+        <view class="snap-code num">{{item.code}}</view>
+        <view class="snap-exch">{{item.exch}}市 · {{item.index}}</view>
+      </view>
+      <view class="snap-mid">
+        <view class="snap-name">{{item.name}}</view>
+        <view class="snap-sub">份额 {{item.sharesText}} · 5日 {{item.flow5Text}} · 价 {{item.priceText}}</view>
+      </view>
+      <view class="snap-val">
+        <view class="snap-v num {{item.flowTone}}">{{item.flowText}}</view>
+        <view class="snap-s">当日净流入</view>
+      </view>
+    </view>
+    <empty-state
+      wx:if="{{rows.length === 0}}"
+      glyph="∅"
+      title="没有匹配的 ETF"
+      text="尝试更换关键词或切换市场筛选。"
+    />
+  </view>
+
+  <!-- ② 表格视图 -->
+  <block wx:if="{{view === 'table'}}">
+    <view wx:if="{{rows.length === 0}}" class="card" style="margin:10px 14px;">
+      <empty-state
+        glyph="∅"
+        title="没有匹配的 ETF"
+        text="尝试更换关键词或切换市场筛选。"
+      />
+    </view>
+    <view wx:else class="snap-table-wrap">
+    <scroll-view scroll-x class="table-scroll" enhanced show-scrollbar="{{false}}">
+      <view class="table snap-table">
+        <view class="tr th">
+          <view class="td left tap-item" style="width:150px;" data-key="name" bindtap="toggleSort" hover-class="tap-feedback">ETF{{sortKey === 'name' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}}</view>
+          <view class="td sortable tap-item" style="width:78px;" data-key="latestShares" bindtap="toggleSort" hover-class="tap-feedback">份额{{sortKey === 'latestShares' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}}</view>
+          <view class="td sortable tap-item" style="width:76px;" data-key="sharesChange" bindtap="toggleSort" hover-class="tap-feedback">变动{{sortKey === 'sharesChange' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}}</view>
+          <view class="td sortable tap-item" style="width:92px;" data-key="latestFlow" bindtap="toggleSort" hover-class="tap-feedback">当日净流入{{sortKey === 'latestFlow' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}}</view>
+          <view class="td sortable tap-item" style="width:80px;" data-key="flow5" bindtap="toggleSort" hover-class="tap-feedback">近5日{{sortKey === 'flow5' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}}</view>
+          <view class="td sortable tap-item" style="width:80px;" data-key="flow20" bindtap="toggleSort" hover-class="tap-feedback">近20日{{sortKey === 'flow20' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}}</view>
+          <view class="td sortable tap-item" style="width:70px;" data-key="latestClose" bindtap="toggleSort" hover-class="tap-feedback">最新价{{sortKey === 'latestClose' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}}</view>
+          <view class="td sortable tap-item" style="width:72px;" data-key="priceChangePct" bindtap="toggleSort" hover-class="tap-feedback">涨跌{{sortKey === 'priceChangePct' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}}</view>
+          <view class="td sortable tap-item" style="width:88px;" data-key="index" bindtap="toggleSort" hover-class="tap-feedback">指数{{sortKey === 'index' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}}</view>
+          <view class="td sortable tap-item" style="width:44px;" data-key="exch" bindtap="toggleSort" hover-class="tap-feedback">市场{{sortKey === 'exch' ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''}}</view>
+        </view>
+        <view
+          wx:for="{{rows}}"
+          wx:key="code"
+          class="tr tap-item"
+          data-code="{{item.code}}"
+          bindtap="openEtf"
+         hover-class="tap-feedback">
+          <view class="td left" style="width:150px;">
+            <view class="snap-td-name">{{item.name}}</view>
+            <view class="snap-td-code num">{{item.code}}</view>
+          </view>
+          <view class="td num" style="width:78px;">{{item.sharesText}}</view>
+          <view class="td num {{item.changeTone}}" style="width:76px;">{{item.changeText}}</view>
+          <view class="td num {{item.flowTone}}" style="width:92px;">{{item.flowText}}</view>
+          <view class="td num {{item.flow5Tone}}" style="width:80px;">{{item.flow5Text}}</view>
+          <view class="td num {{item.flow20Tone}}" style="width:80px;">{{item.flow20Text}}</view>
+          <view class="td num" style="width:70px;">{{item.priceText}}</view>
+          <view class="td num {{item.pctTone}}" style="width:72px;">{{item.pctText}}</view>
+          <view class="td" style="width:88px;">{{item.index}}</view>
+          <view class="td" style="width:44px;">{{item.exch}}</view>
+        </view>
+        <view class="tr total-row">
+          <view class="td left" style="width:150px;">合计（{{count}} 只）</view>
+          <view class="td num" style="width:78px;">{{sumSharesText}}</view>
+          <view class="td num" style="width:76px;">{{sumChangeText}}</view>
+          <view class="td num {{sumFlowTone}}" style="width:92px;">{{sumFlowText}}</view>
+          <view class="td num" style="width:80px;">{{sumFlow5Text}}</view>
+          <view class="td num" style="width:80px;">{{sumFlow20Text}}</view>
+          <view class="td" style="width:70px;">—</view>
+          <view class="td" style="width:72px;">—</view>
+          <view class="td" style="width:88px;">—</view>
+          <view class="td" style="width:44px;">—</view>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="table-note">横向滑动查看完整 10 列；点击表头切换排序。单位：份额/变动为亿份，净流入为亿元。</view>
+    </view>
+  </block>
+
+  <!-- ④ 数据口径 -->
+  <view class="section" style="margin-top:12px;">
+    <view class="notice">
+      <view class="notice-icon">i</view>
+      <view>份额与净流入为交易所披露的估算值，同一 ETF 当日净流入 ≠ 份额变动 × 价格（四舍五入存在误差）。点击任意行进入单只详情。</view>
+    </view>
+  </view>
+
+  <view class="footer-note">{{disclaimer}}</view>
+</view>
+
+<!-- 排序半屏 -->
+<sheet show="{{showSort}}" title="排序方式" hint="手机端卡片视图按单一字段排序，表格视图可直接点击表头切换。" bindclose="closeSort">
+  <view
+    wx:for="{{sortOptions}}"
+    wx:key="key"
+    class="sheet-option {{item.active ? 'active' : ''}} tap-item"
+    data-key="{{item.key}}"
+    bindtap="pickSort"
+   hover-class="tap-feedback">
+    <view class="sheet-nm">
+      <view>{{item.label}}</view>
+      <view class="sheet-sub">{{item.desc}}</view>
+    </view>
+    <text wx:if="{{item.active}}" class="sheet-check">✓</text>
+    <text wx:else class="chev">›</text>
+  </view>
+</sheet>

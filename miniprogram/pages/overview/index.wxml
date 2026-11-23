@@ -1,0 +1,212 @@
+<nav-bar title="国家队ETF" dark="{{true}}" />
+
+<view class="page tabpage {{pageAnim ? 'page-anim-' + pageAnim : ''}}">
+  <!-- ① 当日净流入 Hero -->
+  <view class="hero">
+    <view class="hero-top">
+      <view class="live-dot"></view>
+      <text>国家队 ETF 动向追踪 · 16 只宽基监控组合</text>
+      <text class="source-chip">{{sourceChip}}</text>
+    </view>
+    <view class="hero-label">当日估算净流入</view>
+    <view class="hero-value">
+      <text class="hero-num num {{dayFlowClass}}">{{dayFlowText}}</text>
+      <text class="hero-unit">亿元</text>
+    </view>
+    <view class="hero-sub">
+      <view class="hero-sub-item">
+        <view class="hero-sub-k">监控份额合计</view>
+        <view class="hero-sub-v num">{{sharesText}}<text class="unit-small">亿份</text></view>
+      </view>
+      <view class="hero-sub-item">
+        <view class="hero-sub-k">ETF 最新交易日</view>
+        <view class="hero-sub-v num">{{etfDateText}}<text class="unit-small">T+1</text></view>
+      </view>
+      <view class="hero-sub-item">
+        <view class="hero-sub-k">期货已更新至</view>
+        <view class="hero-sub-v num">{{futuresDateText}}<text class="unit-small">收盘</text></view>
+      </view>
+      <view class="hero-sub-item">
+        <view class="hero-sub-k">数据更新</view>
+        <view class="hero-sub-v time num">{{updateTimeText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ② 行情跑马灯 -->
+  <view class="ticker" bindtouchstart="onTickerStart" bindtouchend="onTickerEnd" bindtouchcancel="onTickerEnd">
+    <view class="ticker-track {{tickerPaused ? 'paused' : ''}}">
+      <view
+        wx:for="{{ticker}}"
+        wx:key="uid"
+        class="ticker-item tap-item"
+        data-code="{{item.code}}"
+        bindtap="openEtf"
+       hover-class="tap-feedback">
+        <text class="ticker-code">{{item.code}} · {{item.exch}}</text>
+        <view class="ticker-line">
+          <text class="ticker-price num">{{item.price}}</text>
+          <text class="ticker-pct num {{item.tone}}">{{item.pct}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ③ 概览指标卡组 -->
+  <view class="stat-grid">
+    <view
+      wx:for="{{stats}}"
+      wx:key="key"
+      class="stat-card {{item.action ? 'linkable' : ''}} tap-item"
+      data-action="{{item.action}}"
+      bindtap="onStatTap"
+     hover-class="tap-feedback">
+      <view class="stat-k">{{item.label}}</view>
+      <view class="stat-v num {{item.tone}}">{{item.value}}<text class="unit-small">{{item.unit}}</text></view>
+      <view class="stat-f">{{item.foot}}</view>
+    </view>
+  </view>
+
+  <!-- ④ 监控组合分布 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">监控组合分布</view>
+        <view class="section-sub">前 5 大标的占组合 {{top5PctText}}%</view>
+      </view>
+      <view class="section-link tap-item" bindtap="goSnapshot" hover-class="tap-feedback">最新快照<text class="chev">›</text></view>
+    </view>
+    <view class="card">
+      <view class="dist-top">
+        <text class="dist-k">组合规模</text>
+        <view class="dist-v num">{{scaleText}}<text class="unit-small">亿元</text></view>
+      </view>
+      <view class="dist-bar">
+        <view
+          wx:for="{{top5}}"
+          wx:key="label"
+          class="dist-bar-seg"
+          style="width:{{item.width}}%;background:{{item.color}};"
+        ></view>
+      </view>
+      <view class="dist-legend">
+        <view
+          wx:for="{{top5}}"
+          wx:key="label"
+          class="dist-legend-item tap-item"
+          data-code="{{item.code}}"
+          bindtap="openEtf"
+         hover-class="tap-feedback">
+          <view class="dist-dot" style="background:{{item.color}};"></view>
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ⑤ 近 20 日资金流 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">近 20 日资金流</view>
+        <view class="section-sub">柱：单日净流入（亿元）</view>
+      </view>
+      <view class="section-link tap-item" bindtap="goFlow" hover-class="tap-feedback">净申赎走势<text class="chev">›</text></view>
+    </view>
+    <view class="card tap-item" bindtap="goFlow" hover-class="tap-feedback">
+      <view class="spark">
+        <view wx:for="{{flow20Spark}}" wx:key="uid" class="spark-col">
+          <view class="spark-bar {{item.dir}}" style="height:{{item.h}}px;top:{{item.top}}px;"></view>
+        </view>
+      </view>
+      <view class="spark-axis">
+        <text>{{flow20Start}}</text>
+        <text class="spark-total num {{flow20TotalTone}}">20 日合计 {{flow20TotalText}} 亿元</text>
+        <text>{{flow20End}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ⑥ ETF 最新快照 Top5 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">ETF 最新快照</view>
+        <view class="section-sub">按当日净流入降序 · 共 16 只</view>
+      </view>
+      <view class="section-link tap-item" bindtap="goSnapshot" hover-class="tap-feedback">全部<text class="chev">›</text></view>
+    </view>
+    <view class="card" style="padding-top:2px;padding-bottom:2px;">
+      <view
+        wx:for="{{topFlowRows}}"
+        wx:key="code"
+        class="row-item tap-item"
+        data-code="{{item.code}}"
+        bindtap="openEtf"
+       hover-class="tap-feedback">
+        <view class="code-badge num">{{item.code}}</view>
+        <view class="row-main">
+          <view class="row-name"><text class="exchange-tag">{{item.exch}}</text>{{item.name}}</view>
+          <view class="row-meta">{{item.index}} · 份额 {{item.sharesText}} 亿份</view>
+        </view>
+        <view class="row-value">
+          <view class="row-v num {{item.tone}}">{{item.flowText}}</view>
+          <view class="row-s">当日净流入 · 亿元</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ⑦ 快捷入口 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">更多功能</view>
+        <view class="section-sub">按使用频次排序</view>
+      </view>
+    </view>
+    <view class="quick-grid">
+      <view class="quick-item tap-item" bindtap="goFlow" hover-class="tap-feedback">
+        <view class="quick-icon">势</view>
+        <view>
+          <view class="quick-t">净申赎走势</view>
+          <view class="quick-s">合计与单只对比</view>
+        </view>
+      </view>
+      <view class="quick-item tap-item" bindtap="goQihuo" hover-class="tap-feedback">
+        <view class="quick-icon amber">龙</view>
+        <view>
+          <view class="quick-t">期指多空</view>
+          <view class="quick-s">龙虎榜实时净增</view>
+        </view>
+      </view>
+      <view class="quick-item tap-item" bindtap="goFuturesDetail" hover-class="tap-feedback">
+        <view class="quick-icon green">仓</view>
+        <view>
+          <view class="quick-t">期货持仓</view>
+          <view class="quick-s">前 20 会员合约明细</view>
+        </view>
+      </view>
+      <view class="quick-item tap-item" bindtap="goBaseline" hover-class="tap-feedback">
+        <view class="quick-icon violet">基</view>
+        <view>
+          <view class="quick-t">持仓基准</view>
+          <view class="quick-s">国家队官方披露</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ⑧ 数据口径 -->
+  <view class="section">
+    <view class="notice">
+      <view class="notice-icon">i</view>
+      <view>
+        <text class="notice-strong">{{meta.updateNote}}</text>
+        。份额为交易所披露估算值，非官方申赎数据；ETF 的 T+1 日期与期货收盘日期可能不一致，页面已分别标注。
+      </view>
+    </view>
+  </view>
+
+  <view class="footer-note">{{disclaimer}}</view>
+</view>

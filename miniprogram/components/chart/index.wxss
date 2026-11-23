@@ -1,0 +1,12 @@
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.chart-canvas {
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+}

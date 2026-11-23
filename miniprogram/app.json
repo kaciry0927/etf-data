@@ -1,0 +1,62 @@
+{
+  "pages": [
+    "pages/overview/index",
+    "pages/flow/index",
+    "pages/futures/index",
+    "pages/profile/index",
+    "pages/snapshot/index",
+    "pages/etf/index",
+    "pages/futures-detail/index",
+    "pages/qihuo/index",
+    "pages/baseline/index"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f3f5f9",
+    "backgroundTextStyle": "dark",
+    "backgroundColorTop": "#f3f5f9",
+    "backgroundColorBottom": "#f3f5f9"
+  },
+  "tabBar": {
+    "color": "#808a99",
+    "selectedColor": "#2f6fdd",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/overview/index",
+        "text": "概览",
+        "iconPath": "images/tab/overview.png",
+        "selectedIconPath": "images/tab/overview-active.png"
+      },
+      {
+        "pagePath": "pages/flow/index",
+        "text": "走势",
+        "iconPath": "images/tab/flow.png",
+        "selectedIconPath": "images/tab/flow-active.png"
+      },
+      {
+        "pagePath": "pages/futures/index",
+        "text": "期货",
+        "iconPath": "images/tab/futures.png",
+        "selectedIconPath": "images/tab/futures-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "images/tab/profile.png",
+        "selectedIconPath": "images/tab/profile-active.png"
+      }
+    ]
+  },
+  "usingComponents": {
+    "nav-bar": "/components/nav-bar/index",
+    "sheet": "/components/sheet/index",
+    "seg-control": "/components/seg-control/index",
+    "empty-state": "/components/empty-state/index",
+    "chart": "/components/chart/index"
+  },
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

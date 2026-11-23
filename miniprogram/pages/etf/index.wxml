@@ -1,0 +1,168 @@
+<nav-bar title="ETF 详情" back="{{true}}" />
+
+<view class="page {{pageAnim ? 'page-anim-' + pageAnim : ''}}">
+  <!-- ① 身份信息与价格 -->
+  <view class="section" style="margin-top:14px;">
+    <view class="card">
+      <view class="etf-head">
+        <view class="etf-head-main">
+          <view class="etf-tags">
+            <text class="etf-code num">{{code}}</text>
+            <text class="exchange-tag">{{exch}}市</text>
+            <text class="exchange-tag">{{index}}</text>
+          </view>
+          <view class="etf-name">{{name}}</view>
+          <view class="etf-full">{{full}}</view>
+        </view>
+        <view class="etf-price">
+          <view class="etf-price-v num">{{priceText}}</view>
+          <view class="etf-price-p num {{pctTone}}">{{pctText}}</view>
+        </view>
+      </view>
+      <view class="etf-actions">
+        <view class="chip etf-action tap-item" bindtap="openPicker" hover-class="tap-feedback">切换 ETF</view>
+        <view class="chip etf-action tap-item" bindtap="openSnapshot" hover-class="tap-feedback">查看全部快照</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 四指标 -->
+  <view class="section">
+    <view class="stat-grid" style="padding:0;">
+      <view class="stat-card">
+        <view class="stat-k">最新份额</view>
+        <view class="stat-v num">{{sharesText}}<text class="unit-small">亿份</text></view>
+        <view class="stat-f">最后一个非空披露值</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-k">当日份额变动</view>
+        <view class="stat-v num {{sharesChangeTone}}">{{sharesChangeText}}<text class="unit-small">亿份</text></view>
+        <view class="stat-f">与前一有效份额之差</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-k">当日净流入</view>
+        <view class="stat-v num {{latestFlowTone}}">{{latestFlowText}}<text class="unit-small">亿元</text></view>
+        <view class="stat-f">份额变动 × 当日收盘价估算</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-k">区间统计</view>
+        <view class="etf-range-stat">
+          <view class="num {{flow5Tone}}">5日 {{flow5Text}}</view>
+          <view class="num {{flow20Tone}}">20日 {{flow20Text}}</view>
+        </view>
+        <view class="stat-f">单位：亿元</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ③ 份额与净流入图表 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">份额与净流入</view>
+        <view class="section-sub">点按图表查看对应交易日</view>
+      </view>
+    </view>
+    <view style="margin-bottom:10px;">
+      <seg-control options="{{rangeOptions}}" value="{{range}}" bindchange="onRangeChange" />
+    </view>
+    <view class="card">
+      <view class="card-title">基金份额走势（亿份）</view>
+      <view class="chart-note" style="margin-top:1px;margin-bottom:4px;">点为份额，面积仅作趋势提示</view>
+      <chart
+        wx:if="{{chartVisible}}"
+        type="line"
+        labels="{{labels}}"
+        series="{{shareSeries}}"
+        height="{{168}}"
+        digits="{{2}}"
+        area="{{true}}"
+        empty-text="暂无份额数据"
+      />
+      <view wx:else style="height:168px;"></view>
+    </view>
+    <view class="card" style="margin-top:10px;">
+      <view class="card-title">当日估算净流入（亿元）</view>
+      <view class="chart-note" style="margin-top:1px;margin-bottom:4px;">正红负绿　线：区间累计</view>
+      <chart
+        wx:if="{{chartVisible}}"
+        type="dual"
+        labels="{{labels}}"
+        bars="{{flowBars}}"
+        line="{{flowLine}}"
+        height="{{172}}"
+        bar-name="当日"
+        line-name="累计"
+        bar-axis="亿元"
+        line-axis="累计"
+        bar-digits="{{1}}"
+        line-digits="{{1}}"
+      />
+      <view wx:else style="height:172px;"></view>
+    </view>
+  </view>
+
+  <!-- ④ 国家队持仓备注 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">国家队持仓备注</view>
+        <view class="section-sub">半年报 / 年报口径，非实时</view>
+      </view>
+    </view>
+    <view class="card">
+      <view class="etf-note">{{note}}</view>
+      <view class="chart-note">备注来自公开披露整理，仅作研究参考，不代表实时持仓。</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-link etf-more tap-item" bindtap="openSnapshot" hover-class="tap-feedback">
+      <text>在最新快照中比较全部 16 只 ETF</text>
+      <text class="chev">›</text>
+    </view>
+  </view>
+
+  <view class="footer-note">{{disclaimer}}</view>
+</view>
+
+<!-- ETF 半屏选择器 -->
+<sheet
+  show="{{showPicker}}"
+  title="切换 ETF"
+  hint="切换后原地替换本页数据，不新增页面栈；区间保持当前选择。"
+  bindclose="closePicker"
+>
+  <view style="padding:0 4px 8px;">
+    <view class="searchbar">
+      <view class="search-glyph"></view>
+      <input
+        placeholder="搜索代码 / 名称 / 指数"
+        value="{{keyword}}"
+        bindinput="onSearch"
+      />
+      <view wx:if="{{keyword}}" class="search-clear tap-item" catchtap="clearSearch" hover-class="tap-feedback">清除</view>
+    </view>
+  </view>
+  <view
+    wx:for="{{pickerList}}"
+    wx:key="code"
+    class="sheet-option tap-item"
+    data-code="{{item.code}}"
+    bindtap="pickEtf"
+   hover-class="tap-feedback">
+    <text class="sheet-code num">{{item.code}}</text>
+    <view class="sheet-nm">
+      <view>{{item.name}}</view>
+      <view class="sheet-sub">{{item.meta}}</view>
+    </view>
+    <text wx:if="{{item.code === code}}" class="sheet-check">✓</text>
+    <text wx:else class="chev">›</text>
+  </view>
+  <empty-state
+    wx:if="{{pickerList.length === 0}}"
+    glyph="∅"
+    title="未找到匹配的 ETF"
+    text="试试输入 510300，或清空关键词查看全部 16 只。"
+  />
+</sheet>

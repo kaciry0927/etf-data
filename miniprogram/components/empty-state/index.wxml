@@ -1,0 +1,6 @@
+<view class="empty">
+  <view class="empty-icon">{{glyph}}</view>
+  <view class="empty-title">{{title}}</view>
+  <view wx:if="{{text}}" class="empty-text">{{text}}</view>
+  <view class="empty-actions"><slot></slot></view>
+</view>

@@ -1,0 +1,67 @@
+{
+  "description": "国家队 ETF 动向追踪 · 微信小程序",
+  "miniprogramRoot": "miniprogram/",
+  "compileType": "miniprogram",
+  "appid": "wx1234567890abcdef",
+  "projectname": "wechat-etf-monitor",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true,
+    "bigPackageSizeSupport": true,
+    "compileHotReLoad": true,
+    "useApiHook": true,
+    "useApiHostProcess": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "概览",
+          "pathName": "pages/overview/index",
+          "query": ""
+        },
+        {
+          "name": "最新快照",
+          "pathName": "pages/snapshot/index",
+          "query": ""
+        },
+        {
+          "name": "ETF 详情 510300",
+          "pathName": "pages/etf/index",
+          "query": "code=510300"
+        },
+        {
+          "name": "期指多空",
+          "pathName": "pages/qihuo/index",
+          "query": ""
+        }
+      ]
+    }
+  },
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "editorSetting": {}
+}

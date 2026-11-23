@@ -1,0 +1,21 @@
+# 依赖与构建产物（Actions 里用 actions/cache，不提交）
+node_modules/
+dist/
+
+# 抓取缓存：本机增量用，体积会涨到几 MB
+server/.cache/
+
+# 开发者工具的本地私有配置（含个人设置，不含密钥也知道 appid）
+project.private.config.json
+
+# 日志与临时文件
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# ���ؿ����߹������ã��� AppID�������ύ
+project.config.json
+
+# �༭��Ŀ¼
+.idea/

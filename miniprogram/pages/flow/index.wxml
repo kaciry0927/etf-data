@@ -1,0 +1,160 @@
+<nav-bar title="净申赎走势" />
+
+<view class="page tabpage {{pageAnim ? 'page-anim-' + pageAnim : ''}}">
+  <!-- ① 区间摘要 -->
+  <view class="summary-band">
+    <view class="summary-k">监控组合 · {{rangeLabel}}累计净流入</view>
+    <view class="summary-v num {{totalClass}}">{{totalText}}<text class="unit-small">亿元</text></view>
+    <view class="summary-row">
+      <view>当日净流入<text class="num {{dayClass}}">{{dayText}}</text> 亿</view>
+      <view>区间日均<text class="num">{{avgText}}</text> 亿</view>
+      <view>交易日<text class="num">{{daysText}}</text></view>
+    </view>
+  </view>
+
+  <!-- ②③ 区间与图表 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">每日估算净申赎</view>
+        <view class="section-sub">柱：单日净流入（亿元）　线：区间累计（亿元）</view>
+      </view>
+    </view>
+    <view style="margin-bottom:10px;">
+      <seg-control
+        options="{{rangeOptions}}"
+        value="{{range}}"
+        bindchange="onRangeChange"
+      />
+    </view>
+    <view class="card chart-card">
+      <chart
+        wx:if="{{chartVisible}}"
+        type="dual"
+        labels="{{labels}}"
+        bars="{{bars}}"
+        line="{{line}}"
+        height="{{216}}"
+        bar-name="单日"
+        line-name="累计"
+        bar-axis="亿元"
+        line-axis="累计"
+        bar-digits="{{1}}"
+        line-digits="{{range === 'all' ? 0 : 1}}"
+      />
+      <view wx:else style="height:216px;"></view>
+      <view class="chart-note">点按或拖动图表可查看任意交易日的单日与累计值；数据为交易所份额变化的估算口径。</view>
+    </view>
+  </view>
+
+  <!-- ④ 区间资金榜 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">区间资金榜</view>
+        <view class="section-sub">{{rangeLabel}} · 单只 ETF 口径</view>
+      </view>
+    </view>
+    <view class="card" id="rankCard" style="padding-top:10px;">
+      <view style="margin-bottom:4px;">
+        <seg-control
+          options="{{rankOptions}}"
+          value="{{rankTab}}"
+          bindchange="onRankChange"
+        />
+      </view>
+      <view
+        wx:for="{{rankRows}}"
+        wx:key="rowKey"
+        class="rank-row tap-item"
+        data-code="{{item.code}}"
+        bindtap="openEtf"
+        hover-class="tap-feedback"
+      >
+        <view class="rank-no num {{item.top}}">{{item.no}}</view>
+        <view class="rank-main">
+          <view class="rank-name">{{item.code}} · {{item.name}}</view>
+          <view class="rank-bar">
+            <view
+              class="rank-bar-in"
+              style="width:{{item.width}}%;background:{{item.barColor}};animation-delay:{{item.barDelay}}ms;"
+            ></view>
+          </view>
+        </view>
+        <view class="rank-value num {{item.tone}}">{{item.valueText}}</view>
+      </view>
+      <view wx:if="{{rankRows.length === 0}}" class="chart-note">当前区间暂无排行数据。</view>
+    </view>
+  </view>
+
+  <!-- ⑤ 单只 ETF 入口 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">单只 ETF 分析</view>
+        <view class="section-sub">查看份额与净流入的对应关系</view>
+      </view>
+    </view>
+    <view class="cell-group">
+      <view class="cell tap-item" bindtap="openPicker" hover-class="tap-feedback">
+        <view class="cell-icon">搜</view>
+        <view class="cell-main">
+          <view class="cell-title">选择一只 ETF</view>
+          <view class="cell-sub">510300 华泰柏瑞沪深300ETF 等 16 只</view>
+        </view>
+        <view class="cell-value">选择<text class="chev">›</text></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ⑥ 口径说明 -->
+  <view class="section">
+    <view class="notice">
+      <view class="notice-icon">i</view>
+      <view>累计净流入由单日估算值逐日累加生成。ETF 份额 T+1 披露，盘中只可参考前一交易日数据。</view>
+    </view>
+  </view>
+
+  <view class="footer-note">{{disclaimer}}</view>
+</view>
+
+<!-- ETF 半屏选择器 -->
+<sheet
+  show="{{showPicker}}"
+  title="选择 ETF"
+  hint="共 16 只国家队重仓 ETF，支持按代码、名称或跟踪指数搜索。"
+  bindclose="closePicker"
+>
+  <view style="padding:0 4px 8px;">
+    <view class="searchbar">
+      <view class="search-glyph"></view>
+      <input
+        placeholder="搜索代码 / 名称 / 指数"
+        placeholder-class="muted"
+        value="{{keyword}}"
+        bindinput="onSearch"
+      />
+      <view wx:if="{{keyword}}" class="search-clear tap-item" catchtap="clearSearch" hover-class="tap-feedback">清除</view>
+    </view>
+  </view>
+  <view
+    wx:for="{{pickerList}}"
+    wx:key="code"
+    class="sheet-option tap-item"
+    data-code="{{item.code}}"
+    bindtap="pickEtf"
+   hover-class="tap-feedback">
+    <text class="sheet-code num">{{item.code}}</text>
+    <view class="sheet-nm">
+      <view>{{item.name}}</view>
+      <view class="sheet-sub">{{item.meta}}</view>
+    </view>
+    <text class="chev">›</text>
+  </view>
+  <empty-state
+    wx:if="{{pickerList.length === 0}}"
+    glyph="∅"
+    title="未找到匹配的 ETF"
+    text="试试输入 510300，或清空关键词查看全部 16 只。"
+  />
+</sheet>

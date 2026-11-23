@@ -1,0 +1,33 @@
+/* 我的页专属样式 */
+.source-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 6px;
+  border-bottom: 1px solid #eef1f5;
+}
+
+.source-item:last-of-type {
+  border-bottom: none;
+}
+
+.source-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f1620;
+}
+
+.source-desc {
+  font-size: 9.5px;
+  color: #78828f;
+  margin-top: 3px;
+  line-height: 1.6;
+}
+
+.source-time {
+  font-size: 9px;
+  color: #2f6fdd;
+  white-space: nowrap;
+  padding-top: 2px;
+  flex-shrink: 0;
+}

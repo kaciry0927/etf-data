@@ -1,0 +1,86 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #ffffff;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+}
+
+.nav-dark {
+  background: #0b111c;
+}
+
+.nav-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.nav-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
+  color: #0f1620;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.nav-dark .nav-title {
+  color: #ffffff;
+}
+
+.nav-back {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: opacity 0.16s ease;
+  animation: navBackIn 0.3s ease backwards;
+}
+
+@keyframes navBackIn {
+  from { opacity: 0; transform: translateX(-3px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.nav-back-hover {
+  opacity: 0.6;
+}
+
+.back-chev {
+  width: 10px;
+  height: 10px;
+  border-left: 2px solid #1a2230;
+  border-bottom: 2px solid #1a2230;
+  transform: rotate(45deg);
+  margin-left: 4px;
+}
+
+.nav-dark .back-chev {
+  border-color: #ffffff;
+}
+
+.nav-spacer {
+  background: #ffffff;
+}
+
+.spacer-dark {
+  background: #0b111c;
+}

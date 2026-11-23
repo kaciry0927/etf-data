@@ -1,0 +1,88 @@
+/* ETF 详情页专属样式 */
+.etf-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.etf-head-main {
+  min-width: 0;
+}
+
+.etf-tags {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.etf-code {
+  font-size: 12px;
+  color: #78828f;
+  letter-spacing: 0.6px;
+}
+
+.etf-name {
+  font-size: 17px;
+  font-weight: 700;
+  margin-top: 7px;
+  line-height: 1.35;
+  color: #0f1620;
+}
+
+.etf-full {
+  font-size: 9.5px;
+  color: #9aa3af;
+  margin-top: 4px;
+  line-height: 1.55;
+}
+
+.etf-price {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.etf-price-v {
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1;
+  color: #0f1620;
+}
+
+.etf-price-p {
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.etf-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.etf-action {
+  flex: 1;
+  text-align: center;
+  padding: 8px 10px;
+  font-size: 10.5px;
+}
+
+.etf-range-stat {
+  font-size: 15px;
+  line-height: 1.45;
+  margin-top: 8px;
+  white-space: nowrap;
+}
+
+.etf-note {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #2c3645;
+}
+
+.etf-more {
+  justify-content: space-between;
+  display: flex;
+  font-size: 11px;
+}

@@ -1,0 +1,33 @@
+/* 快照页专属样式 */
+.sort-hint {
+  font-size: 9px;
+  color: #9aa3af;
+}
+
+.snap-table-wrap {
+  margin: 10px 14px 0;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e7eaf0;
+  overflow: hidden;
+}
+
+.snap-table {
+  width: 830px;
+}
+
+.snap-table .td.sortable {
+  color: #78828f;
+  font-weight: 500;
+}
+
+.snap-td-name {
+  font-size: 10.5px;
+  color: #0f1620;
+}
+
+.snap-td-code {
+  font-size: 9px;
+  color: #9aa3af;
+  margin-top: 2px;
+}

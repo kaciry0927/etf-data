@@ -1,0 +1,113 @@
+<nav-bar title="股指期货" />
+
+<view class="page tabpage {{pageAnim ? 'page-anim-' + pageAnim : ''}}">
+  <view class="fut-topline">中金所前 20 会员口径 · 更新至 {{dateText}} 收盘</view>
+
+  <!-- ① 净空头汇总 -->
+  <view class="fut-hero">
+    <view>
+      <view class="fut-hero-k">净空头变动（四品种合计）</view>
+      <view class="fut-hero-v num {{changeClass}}">{{changeText}}<text class="unit-small">手</text></view>
+      <view class="fut-hero-note">较前一交易日 · 空头增加为正值</view>
+    </view>
+    <view class="fut-hero-side">
+      <view>当前净空头</view>
+      <view class="num">{{totalNetText}}</view>
+      <view>四品种合计（手）</view>
+    </view>
+  </view>
+
+  <!-- ② 四品种卡 -->
+  <view class="fut-cards">
+    <view wx:for="{{cards}}" wx:key="product" class="fut-card">
+      <view class="fut-card-top">
+        <view class="prod-dot" style="background:{{item.color}};"></view>
+        <text>{{item.product}} · {{item.name}}</text>
+      </view>
+      <view class="fut-card-v num">{{item.netText}}</view>
+      <view class="fut-card-c num {{item.deltaTone}}">{{item.deltaText}}</view>
+    </view>
+  </view>
+
+  <!-- ③④ 图例 + 净空头走势 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">净空头走势</view>
+        <view class="section-sub">单位：手　点按图表查看四品种数值</view>
+      </view>
+    </view>
+    <view style="margin-bottom:10px;">
+      <seg-control options="{{rangeOptions}}" value="{{range}}" bindchange="onRangeChange" />
+    </view>
+    <view class="card chart-card">
+      <view class="chart-legend">
+        <view
+          wx:for="{{legend}}"
+          wx:key="key"
+          class="legend-item {{item.off ? 'off' : ''}} tap-item"
+          data-key="{{item.key}}"
+          bindtap="toggleLegend"
+         hover-class="tap-feedback">
+          <view class="legend-dot" style="background:{{item.color}};"></view>
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+      <chart
+        wx:if="{{chartVisible && hasSeries}}"
+        type="line"
+        labels="{{labels}}"
+        series="{{series}}"
+        height="{{206}}"
+        digits="{{0}}"
+        empty-text="已隐藏全部品种"
+      />
+      <empty-state
+        wx:if="{{chartVisible && !hasSeries}}"
+        glyph="∅"
+        title="已隐藏全部品种"
+        text="点击上方图例恢复至少一个品种的走势。"
+      />
+      <view wx:if="{{!chartVisible}}" style="height:206px;"></view>
+      <view class="chart-note">净空头 = 持卖单量 − 持买单量；数值为正表示净空，负值表示净多。</view>
+    </view>
+  </view>
+
+  <!-- ⑤ 明细与实时入口 -->
+  <view class="section">
+    <view class="section-head">
+      <view>
+        <view class="section-title">明细与实时数据</view>
+        <view class="section-sub">两种查看粒度</view>
+      </view>
+    </view>
+    <view class="cell-group">
+      <view class="cell tap-item" bindtap="openDetail" hover-class="tap-feedback">
+        <view class="cell-icon">仓</view>
+        <view class="cell-main">
+          <view class="cell-title">最新持仓明细</view>
+          <view class="cell-sub">前 20 会员 · {{contractCount}} 个合约的多空持仓与增减</view>
+        </view>
+        <view class="cell-value">查看<text class="chev">›</text></view>
+      </view>
+      <view class="cell tap-item" bindtap="openQihuo" hover-class="tap-feedback">
+        <view class="cell-icon amber">龙</view>
+        <view class="cell-main">
+          <view class="cell-title">期指多空龙虎榜（实时）</view>
+          <view class="cell-sub">中信期货 / 其他代客 · 支持按交易日查询</view>
+        </view>
+        <view class="cell-value">查看<text class="chev">›</text></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ⑥ 口径说明 -->
+  <view class="section">
+    <view class="notice">
+      <view class="notice-icon">i</view>
+      <view>期货净空头为「持卖单 − 持买单」的前 20 会员合计值，反映头部席位整体对冲方向，不等同全部机构对冲规模。当日变动按中金所 varvolume（多空增减）汇总，避免前 20 会员进出榜单造成的水平差。期指多空数据为盘中实时值，非交易日无数据。</view>
+    </view>
+  </view>
+
+  <view class="footer-note">{{disclaimer}}</view>
+</view>

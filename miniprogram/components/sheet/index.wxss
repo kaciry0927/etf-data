@@ -1,0 +1,100 @@
+.sheet-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(8, 13, 22, 0.42);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: sheetFade 0.18s ease both;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+}
+
+@keyframes sheetFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sheetFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.sheet-mask.closing {
+  animation: sheetFadeOut 0.18s ease both;
+}
+
+.sheet-mask.closing .sheet-panel {
+  animation: sheetDown 0.18s cubic-bezier(0.4, 0, 0.8, 0.4) both;
+}
+
+@keyframes sheetDown {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+.sheet-panel {
+  background: #ffffff;
+  border-radius: 16px 16px 0 0;
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  animation: sheetUp 0.24s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  border-bottom: 1px solid #eef1f5;
+  flex-shrink: 0;
+}
+
+.sheet-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f1620;
+}
+
+.sheet-close {
+  font-size: 11px;
+  color: #78828f;
+  padding: 4px 0 4px 10px;
+  animation: sheetCloseIn 0.3s ease backwards;
+}
+
+@keyframes sheetCloseIn {
+  from { opacity: 0; transform: translateX(4px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.sheet-hint {
+  padding: 9px 16px 0;
+  font-size: 9.5px;
+  color: #9aa3af;
+  line-height: 1.6;
+  flex-shrink: 0;
+}
+
+.sheet-body {
+  padding: 6px 10px 14px;
+  max-height: 56vh;
+  box-sizing: border-box;
+}
+
+.sheet-safe {
+  height: env(safe-area-inset-bottom);
+  flex-shrink: 0;
+}
