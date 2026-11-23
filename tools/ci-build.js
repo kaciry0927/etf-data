@@ -26,9 +26,29 @@ const { fetchQihuo } = require('../server/lib/eastmoney')
 
 const ROOT = path.resolve(__dirname, '..')
 const DEFAULT_QIHUO_DAYS = 5
+const CACHE_DIR = path.resolve(ROOT, 'server', '.cache')
+const SEED_DIR = path.resolve(ROOT, 'server', 'seed')
+const SEED_FILES = ['kline.json', 'sse.json', 'szse.json', 'ccpm.json']
 
 function log(msg) {
   console.log(new Date().toISOString().slice(11, 19), msg)
+}
+
+/**
+ * CI 每次都是干净检出（server/.cache 不进仓库），从零抓 147 天太慢也容易超时。
+ * 这里把仓库里带的种子缓存铺到 .cache，让每次只补新交易日。
+ * 用 --force 时会忽略缓存，种子也就不起作用。
+ */
+function seedCache() {
+  if (!fs.existsSync(SEED_DIR)) return
+  fs.mkdirSync(CACHE_DIR, { recursive: true })
+  SEED_FILES.forEach((name) => {
+    const from = path.join(SEED_DIR, name)
+    const to = path.join(CACHE_DIR, name)
+    if (!fs.existsSync(from) || fs.existsSync(to)) return
+    fs.copyFileSync(from, to)
+    log('已从 seed 恢复缓存：' + name)
+  })
 }
 
 function parseArgs(argv) {
@@ -132,6 +152,7 @@ async function main() {
     bundle = JSON.parse(fs.readFileSync(cached, 'utf8'))
     if (!bundle.qihuo) bundle.qihuo = {}
   } else {
+    if (!args.force) seedCache()
     const snapshot = await buildSnapshot({
       days: args.days,
       force: args.force,

@@ -31,7 +31,12 @@ async function fetchKline(code, beg, end) {
     '&beg=' + (beg || '20250101').replace(/-/g, '') +
     '&end=' + (end || '20500101').replace(/-/g, '')
 
-  const json = await requestJson(url, { headers: { Referer: 'https://quote.eastmoney.com/' } })
+  const json = await requestJson(url, {
+    headers: { Referer: 'https://quote.eastmoney.com/' },
+    // 东财被限流时会直接掐连接，单次请求别等太久，重试交给上层统一控制
+    retries: 1,
+    timeout: 15000
+  })
   const data = json && json.data
   if (!data || !Array.isArray(data.klines) || !data.klines.length) {
     // 机房 IP 常见返回 200 + data:null，这里把 rc 和响应片段带出来，便于定位

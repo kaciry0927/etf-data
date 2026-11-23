@@ -91,9 +91,16 @@ async function refreshKline(kline, days, log) {
   // 单只 ETF 失败不应该让整次构建失败：东财偶发 socket hang up / 限流时沿用缓存，
   // 只要 510300（交易日序列锚点）还有数据，就能继续生成快照。
   // 东财对高频 / 机房 IP 会直接掐连接（socket hang up）。
-  // 这里放慢节奏、拉长退避，失败时沿用缓存，避免整次构建挂掉。
-  const RETRY_DELAYS = [0, 1500, 4000]
+  // 放慢节奏、限制总耗时：超过预算就跳过剩余 ETF，沿用缓存继续构建。
+  const RETRY_DELAYS = [0, 1200]
+  const deadline = Date.now() + 120000
+  let skipped = 0
+
   await mapLimit(CODES, 2, async (code) => {
+    if (Date.now() > deadline) {
+      skipped++
+      return
+    }
     for (let attempt = 0; attempt < RETRY_DELAYS.length; attempt++) {
       if (RETRY_DELAYS[attempt]) await sleep(RETRY_DELAYS[attempt])
       try {
@@ -112,6 +119,8 @@ async function refreshKline(kline, days, log) {
       }
     }
   })
+
+  if (skipped && log) log('[kline] 超过 120 秒预算，跳过 ' + skipped + ' 只（沿用缓存）')
 
   if (log) {
     const rows = Object.keys(kline)
