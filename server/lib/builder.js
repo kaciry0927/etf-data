@@ -90,8 +90,12 @@ async function refreshKline(kline, days, log) {
 
   // 单只 ETF 失败不应该让整次构建失败：东财偶发 socket hang up / 限流时沿用缓存，
   // 只要 510300（交易日序列锚点）还有数据，就能继续生成快照。
-  await mapLimit(CODES, 4, async (code) => {
-    for (let attempt = 0; attempt < 2; attempt++) {
+  // 东财对高频 / 机房 IP 会直接掐连接（socket hang up）。
+  // 这里放慢节奏、拉长退避，失败时沿用缓存，避免整次构建挂掉。
+  const RETRY_DELAYS = [0, 1500, 4000]
+  await mapLimit(CODES, 2, async (code) => {
+    for (let attempt = 0; attempt < RETRY_DELAYS.length; attempt++) {
+      if (RETRY_DELAYS[attempt]) await sleep(RETRY_DELAYS[attempt])
       try {
         const rows = await eastmoney.fetchKline(code, beg, end)
         if (!rows || !rows.length) throw new Error('返回空数据')
@@ -101,22 +105,39 @@ async function refreshKline(kline, days, log) {
         }
         return
       } catch (e) {
-        if (attempt === 0) {
-          await sleep(800)
-          continue
+        if (attempt === RETRY_DELAYS.length - 1) {
+          failures.push(code + ' ' + e.message)
+          if (log) log('[kline] ' + code + ' 抓取失败，沿用缓存：' + e.message)
         }
-        failures.push(code + ' ' + e.message)
-        if (log) log('[kline] ' + code + ' 抓取失败，沿用缓存：' + e.message)
       }
     }
   })
 
   if (log) {
+    const rows = Object.keys(kline)
+      .map((code) => (kline[code] && kline[code].rows ? kline[code].rows.length : 0))
+      .sort((a, b) => b - a)
     log(
       '[kline] ' + (CODES.length - failures.length) + '/' + CODES.length +
-      ' 只 ETF 收盘价已更新' + (failures.length ? '（' + failures.length + ' 只沿用缓存）' : '')
+      ' 只 ETF 收盘价已更新' + (failures.length ? '（' + failures.length + ' 只沿用缓存）' : '') +
+      ' · 行数最多 ' + (rows[0] || 0) + ' 天'
     )
+    if (failures.length) log('[kline] 失败明细：' + failures.slice(0, 5).join(' | '))
   }
+}
+
+/**
+ * 交易日序列锚点：取行数最多的那只 ETF。
+ * 原来写死 510300，一旦这只抓取失败整次构建就挂，在 CI 里很脆弱。
+ */
+function pickAnchor(kline) {
+  let best = null
+  Object.keys(kline).forEach((code) => {
+    const item = kline[code]
+    if (!item || !Array.isArray(item.rows) || !item.rows.length) return
+    if (!best || item.rows.length > best.rows.length) best = item
+  })
+  return best
 }
 
 async function refreshSseShares(sseCache, dates, log) {
@@ -397,13 +418,21 @@ async function buildSnapshot(options) {
   await refreshKline(kline, days, log)
   cache.save('kline', kline)
 
-  const anchor = kline['510300']
-  if (!anchor || !anchor.rows || anchor.rows.length < days) {
-    throw new Error('K 线数据不足，无法确定交易日序列')
+  const anchor = pickAnchor(kline)
+  if (!anchor || !anchor.rows || anchor.rows.length < 2) {
+    throw new Error(
+      '所有 ETF 的 K 线都抓取失败，无法确定交易日序列。' +
+      '请检查运行环境能否访问 push2his.eastmoney.com（常见原因：出口 IP 被限流或屏蔽）。'
+    )
+  }
+
+  const usableDays = Math.min(days, anchor.rows.length)
+  if (usableDays < days && log) {
+    log('[kline] 实际可用 ' + usableDays + ' 个交易日（期望 ' + days + '），按可用数据生成')
   }
 
   const anchorDates = anchor.rows.map((r) => r[0])
-  const start = Math.max(0, anchorDates.length - days)
+  const start = Math.max(0, anchorDates.length - usableDays)
   const dates = anchorDates.slice(start)
   const prevDate = start > 0 ? anchorDates[start - 1] : null
 

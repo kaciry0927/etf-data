@@ -27,6 +27,17 @@ jobs:
           key: etf-cache-${{ github.run_id }}
           restore-keys: etf-cache-
 
+      - name: 数据源连通性
+        run: |
+          check() {
+            code=$(curl -s -o /dev/null -m 25 -A "Mozilla/5.0" -w "%{http_code}" "$@")
+            echo "$code  ${!#}"
+          }
+          check "https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.510300&fields1=f1&fields2=f51,f53&klt=101&fqt=1&beg=20261101&end=20261123"
+          check "https://www.cffex.com.cn/sj/ccpm/202611/20/IH.xml"
+          check "https://www.szse.cn/api/report/ShowReport?SHOWTYPE=xlsx&CATALOGID=scsj_fund_jjgm&txtQueryDate=2026-11-20"
+          check -H "Referer: https://www.sse.com.cn/" "https://query.sse.com.cn/commonQuery.do?sqlId=COMMON_SSE_ZQPZ_ETFZL_XXPL_ETFGM_SEARCH_L&TRADE_DATE=2026-11-20"
+
       - name: 生成快照
         id: build
         run: TZ=Asia/Shanghai node tools/ci-build.js --out dist
