@@ -1,0 +1,13 @@
+name: hello
+
+# 诊断用：如果这个最简 workflow 能在 Actions 里出现，
+# 说明仓库 Actions 正常，问题出在 daily.yml 的写法；
+# 如果它也出不来，说明是账号/仓库层面的限制。
+on:
+  workflow_dispatch:
+
+jobs:
+  say:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hello
