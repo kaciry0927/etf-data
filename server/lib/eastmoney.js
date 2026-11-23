@@ -34,7 +34,11 @@ async function fetchKline(code, beg, end) {
   const json = await requestJson(url, { headers: { Referer: 'https://quote.eastmoney.com/' } })
   const data = json && json.data
   if (!data || !Array.isArray(data.klines) || !data.klines.length) {
-    throw new Error('东方财富未返回 ' + code + ' 的 K 线')
+    // 机房 IP 常见返回 200 + data:null，这里把 rc 和响应片段带出来，便于定位
+    const preview = JSON.stringify(json || {}).slice(0, 140)
+    throw new Error(
+      '东方财富未返回 ' + code + ' 的 K 线（rc=' + (json && json.rc) + '，响应 ' + preview + '）'
+    )
   }
 
   const rows = []

@@ -150,8 +150,12 @@ async function refreshSseShares(sseCache, dates, log) {
   const report = progressLogger(log)
   let done = 0
   await mapLimit(missing, 5, async (date) => {
-    const map = await sse.fetchShares(date)
-    if (map) sseCache[date] = map
+    try {
+      const map = await sse.fetchShares(date)
+      if (map) sseCache[date] = map
+    } catch (e) {
+      if (log) log('[sse] ' + date + ' 抓取失败：' + e.message)
+    }
     done++
     report('sse', done, missing.length)
     await sleep(40)
@@ -168,7 +172,13 @@ async function refreshSzseShares(szseCache, dates, log) {
     return
   }
 
-  const part = await szse.fetchShares(missing)
+  let part = {}
+  try {
+    part = await szse.fetchShares(missing)
+  } catch (e) {
+    // 深交所返回 xlsx，偶发超时/截断；失败时保留已有缓存，不阻断整次构建
+    if (log) log('[szse] 抓取失败，沿用缓存：' + e.message)
+  }
   Object.keys(part).forEach((date) => {
     szseCache[date] = part[date]
   })
