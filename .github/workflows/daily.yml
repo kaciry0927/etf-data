@@ -1,19 +1,32 @@
 name: 每日更新 ETF 数据
 
-# 保守写法：只保留必需字段，先确保 GitHub 能登记这个 workflow，
-# 后续需要再逐步加回 concurrency / 失败通知 等增强项。
+# 为什么要排这么多次：GitHub 的 schedule 是"尽力而为"，高峰期/低活跃仓库
+# 延迟几小时甚至丢一次都发生过。所以改成"多时段探测 + 数据没变就不部署"：
+# 任何一次跑成功、且数据有新交易日，才更新 Pages；重复跑不会产生多余提交。
 on:
   schedule:
-    - cron: '10 15 * * *'
-    - cron: '30 0 * * *'
+    # 北京时间 23:15 / 23:45 / 00:30 —— 上交所份额约 23:00 前后发布
+    - cron: '15 15 * * *'
+    - cron: '45 15 * * *'
+    - cron: '30 16 * * *'
+    # 北京时间 08:15 / 09:00 / 09:45 —— 深交所份额次日早间发布
+    - cron: '15 0 * * *'
+    - cron: '0 1 * * *'
+    - cron: '45 1 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: etf-daily
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,25 +40,30 @@ jobs:
           key: etf-cache-${{ github.run_id }}
           restore-keys: etf-cache-
 
+      # 只记录，不阻断：任何一个数据源慢/挂都不应该让整次构建失败
       - name: 数据源连通性
         continue-on-error: true
         run: |
           set +e
+          d=$(TZ=Asia/Shanghai date +%Y-%m-%d)
+          c=$(TZ=Asia/Shanghai date +%Y%m%d)
           check() {
-            code=$(curl -s -o /dev/null -m 12 -A "Mozilla/5.0" -w "%{http_code}" "$@")
+            code=$(curl -s -o /dev/null -m 10 -A "Mozilla/5.0" -w "%{http_code}" "$@")
             echo "$code  ${!#}"
           }
-          check "https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.510300&fields1=f1&fields2=f51,f53&klt=101&fqt=1&beg=20261101&end=20261123"
-          check "https://www.cffex.com.cn/sj/ccpm/202611/20/IH.xml"
-          check "https://www.szse.cn/api/report/ShowReport?SHOWTYPE=xlsx&CATALOGID=scsj_fund_jjgm&txtQueryDate=2026-11-20"
-          check -H "Referer: https://www.sse.com.cn/" "https://query.sse.com.cn/commonQuery.do?sqlId=COMMON_SSE_ZQPZ_ETFZL_XXPL_ETFGM_SEARCH_L&TRADE_DATE=2026-11-20"
+          check "https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.510300&fields1=f1&fields2=f51,f53&klt=101&fqt=1&beg=20261101&end=$c"
+          check "https://www.cffex.com.cn/sj/ccpm/${c:0:6}/${c:6:2}/IH.xml"
+          check "https://www.szse.cn/api/report/ShowReport?SHOWTYPE=xlsx&CATALOGID=scsj_fund_jjgm&TABKEY=tab1&txtStart=$d&txtEnd=$d&jjlb=ETF"
+          check -H "Referer: https://www.sse.com.cn/" "https://query.sse.com.cn/commonQuery.do?sqlId=COMMON_SSE_ZQPZ_ETFZL_XXPL_ETFGM_SEARCH_L&STAT_DATE=$d"
           exit 0
 
       - name: 生成快照
         id: build
         run: TZ=Asia/Shanghai node tools/ci-build.js --out dist
 
+      # 数据没变就不部署，避免"更新时间"被无意义的运行刷成最新
       - name: 发布到 GitHub Pages
+        if: steps.build.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -53,3 +71,19 @@ jobs:
           publish_branch: gh-pages
           cname: data.kaciry.com
           force_orphan: true
+
+      - name: 汇总
+        if: always()
+        run: |
+          {
+            echo "### 本次运行"
+            echo ""
+            echo "| 项目 | 值 |"
+            echo "|---|---|"
+            echo "| 触发方式 | ${{ github.event_name }} |"
+            echo "| ETF 交易日 | ${{ steps.build.outputs.etfDate }} |"
+            echo "| 期货交易日 | ${{ steps.build.outputs.futuresDate }} |"
+            echo "| 龙虎榜天数 | ${{ steps.build.outputs.qihuoDays }} |"
+            echo "| 数据是否有变化 | ${{ steps.build.outputs.changed }} |"
+            echo "| 是否已部署 | ${{ steps.build.outputs.changed == 'true' || github.event_name == 'workflow_dispatch' }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
